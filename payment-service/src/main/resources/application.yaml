@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: payment-service
+  config:
+    import: optional:file:./.env[.properties]
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5435}/${POSTGRES_DB:lending}
+    username: ${POSTGRES_USER:lending_user}
+    password: ${POSTGRES_PASSWORD}
+    hikari:
+      pool-name: payment-pool
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 3000
+      max-lifetime: 1800000
+      data-source-properties:
+        options: "-c statement_timeout=5000"
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+
+server:
+  port: 8081
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+payment:
+  gateway:
+    # simulated = approve everything (dev only). Set to a real provider adapter in production.
+    mode: ${PAYMENT_GATEWAY_MODE:simulated}
+  processing:
+    stale-after: PT5M
+    sweep-interval: PT1M
